@@ -14,6 +14,7 @@ target/
 !**/src/main/**/target/
 mvnw.cmd
 mvnw
+suppressions.xml
 !**/src/test/**/target/
 
 ### STS ###
