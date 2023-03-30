@@ -8,14 +8,13 @@
 *.zip
 *.tar.gz
 *.rar
+mvnw
+mvnw.cmd
 hs_err_pid*
 out/
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
-mvnw.cmd
-mvnw
-suppressions.xml
 !**/src/test/**/target/
 
 ### STS ###
