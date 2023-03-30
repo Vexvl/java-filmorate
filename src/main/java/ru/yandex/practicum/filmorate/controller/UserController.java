@@ -23,7 +23,7 @@ public class UserController {
     }
 
     private void addUserToList(User user) throws ValidationException {
-        if(user.getName().isBlank()){
+        if (user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         validate(user);
