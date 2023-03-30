@@ -6,15 +6,14 @@ import ru.yandex.practicum.filmorate.exceptions.UserValidation;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
 public class UserController {
 
-    private Map<Integer, User> userList = new HashMap<>();
+    private final List<User> userList = new ArrayList<>();
     private int id = 1;
 
     private void validate(User user) throws ValidationException {
@@ -29,17 +28,17 @@ public class UserController {
         }
         validate(user);
         user.setId(id);
-        userList.put(id, user);
+        userList.add(user);
         log.info("Пользователь успешно создан");
         id++;
     }
 
     private void updateFilmList(User user) throws ValidationException {
-        if (userList.containsKey(user.getId())) {
+        if (userList.contains(user)) {
             validate(user);
-            userList.put(user.getId(), user);
-            log.info("Фильм успешно обновлён");
-        } else log.warn("Нужно сначала создать фильм");
+            userList.add(user);
+            log.info("Пользователь успешно обновлён");
+        } else log.warn("Нужно сначала создать пользователя");
     }
 
     @PostMapping("/users")
@@ -55,7 +54,7 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public Map<Integer, User> getUsers() {
+    public List<User> getUsers() {
         return userList;
     }
 }
