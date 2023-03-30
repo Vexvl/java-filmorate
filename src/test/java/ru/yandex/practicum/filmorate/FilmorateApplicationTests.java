@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.exceptions.UpdateException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -54,7 +55,7 @@ class FilmorateApplicationTests {
     public void shouldTValidateFilmUpdate(){
         film.setId(1);
 
-        final ValidationException exception = assertThrows(ValidationException.class, () -> filmController.updateFilm(film));
+        final UpdateException exception = assertThrows(UpdateException.class, () -> filmController.updateFilm(film));
 
         assertEquals("Такого фильма нет", exception.getMessage());
     }
@@ -63,7 +64,7 @@ class FilmorateApplicationTests {
     public void shouldValidateUserUpdate(){
         user.setId(1);
 
-        final ValidationException exception = assertThrows(ValidationException.class, () -> userController.updateUser(user));
+        final UpdateException exception = assertThrows(UpdateException.class, () -> userController.updateUser(user));
 
         assertEquals("Такого пользователя нет", exception.getMessage());
     }

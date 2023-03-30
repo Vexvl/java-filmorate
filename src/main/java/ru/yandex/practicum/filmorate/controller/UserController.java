@@ -2,19 +2,24 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.UpdateException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    private final List<User> userList = new ArrayList<>();
+    private final Map<Integer, User> userMap = new HashMap<>();
+
     private int id = 1;
 
     private void addUserToList(User user) {
@@ -22,21 +27,17 @@ public class UserController {
             user.setName(user.getLogin());
         }
         user.setId(id);
-        userList.add(user);
+        userMap.put(user.getId(), user);
         log.info("Пользователь успешно создан");
         id++;
     }
 
     private User updateUserList(User user) {
-        if (userList.contains(user)) {
-            userList.remove(user);
-            userList.add(user);
+        if (userMap.containsKey(user.getId())) {
+            userMap.put(user.getId(), user);
             log.info("Пользователь успешно обновлён");
-        } else {
-            userList.add(user);
-            log.info("Такого пользователя нет, он был создан");
-        }
-        return user;
+            return user;
+        } else throw new UpdateException("Такого пользователя нет");
     }
 
     @PostMapping
@@ -53,6 +54,6 @@ public class UserController {
 
     @GetMapping
     public List<User> getUsers() {
-        return userList;
+        return new ArrayList<User>(userMap.values());
     }
 }

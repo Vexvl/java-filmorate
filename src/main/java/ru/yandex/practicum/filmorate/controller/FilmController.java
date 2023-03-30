@@ -2,19 +2,22 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.UpdateException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
 
-    private final List<Film> filmList = new ArrayList<>();
+    private final Map<Integer, Film> filmMap= new HashMap<>();
 
     private int id = 1;
 
@@ -25,21 +28,16 @@ public class FilmController {
     private void addFilmToList(Film film) throws ValidationException {
         validateReleaseDate(film);
         film.setId(id);
-        filmList.add(film);
+        filmMap.put(film.getId(), film);
         log.info("Фильм успешно добавлен");
         id++;
     }
 
     private void updateFilmList(Film film) throws ValidationException {
-        if (filmList.contains(film)) {
-            validateReleaseDate(film);
-            filmList.remove(film);
-            film.setId(id++);
-            filmList.add(film);
+        if (filmMap.containsKey(film.getId())) {
+            filmMap.put(film.getId(), film);
             log.info("Фильм успешно обновлён");
-        } else
-            filmList.add(film);
-            log.info("Такого фильма нет, он был создан");
+        } else throw new UpdateException("Такого фильма нет");
     }
 
     @PostMapping
@@ -56,7 +54,7 @@ public class FilmController {
 
     @GetMapping
     public List<Film> getFilms() {
-        return filmList;
+        return new ArrayList<Film>(filmMap.values());
     }
 
 }
