@@ -2,58 +2,56 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.UserValidation;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @RestController
+@RequestMapping("/users")
 public class UserController {
 
     private final List<User> userList = new ArrayList<>();
     private int id = 1;
 
-    private void validate(User user) throws ValidationException {
-        UserValidation.validateEmail(user.getEmail());
-        UserValidation.validateBirthday(user.getBirthday());
-        UserValidation.validateLogin(user.getLogin());
-    }
-
-    private void addUserToList(User user) throws ValidationException {
-        if (user.getName().isBlank()) {
+    private void addUserToList(User user) {
+        if (user.getName() == null) {
             user.setName(user.getLogin());
         }
-        validate(user);
         user.setId(id);
         userList.add(user);
         log.info("Пользователь успешно создан");
         id++;
     }
 
-    private void updateFilmList(User user) throws ValidationException {
+    private User updateUserList(User user) {
         if (userList.contains(user)) {
-            validate(user);
+            userList.remove(user);
             userList.add(user);
             log.info("Пользователь успешно обновлён");
-        } else log.warn("Нужно сначала создать пользователя");
+        } else {
+            userList.add(user);
+            log.info("Такого пользователя нет, он был создан");
+        }
+        return user;
     }
 
-    @PostMapping("/users")
-    public User createUser(@RequestBody User user) throws ValidationException {
+    @PostMapping
+    public User createUser(@Valid @RequestBody User user) {
         addUserToList(user);
         return user;
     }
 
-    @PutMapping("/users")
-    public User updateUser(@RequestBody User user) throws ValidationException {
-        updateFilmList(user);
+    @PutMapping
+    public User updateUser(@Valid @RequestBody User user) {
+        updateUserList(user);
         return user;
     }
 
-    @GetMapping("/users")
+    @GetMapping
     public List<User> getUsers() {
         return userList;
     }
