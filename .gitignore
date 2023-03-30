@@ -12,6 +12,8 @@ out/
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
+mvnw.cmd
+mvnw
 !**/src/test/**/target/
 
 ### STS ###
