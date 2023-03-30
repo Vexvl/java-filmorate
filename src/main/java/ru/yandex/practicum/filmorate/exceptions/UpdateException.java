@@ -6,7 +6,6 @@ public class UpdateException extends RuntimeException {
         super(message);
     }
 
-
     public String getDetailMessage() {
         return "Ошибка обновления: " + getMessage();
     }

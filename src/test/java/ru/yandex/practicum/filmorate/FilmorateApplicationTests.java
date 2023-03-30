@@ -52,7 +52,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void shouldTValidateFilmUpdate(){
+    public void shouldTValidateFilmUpdate() {
         film.setId(1);
 
         final UpdateException exception = assertThrows(UpdateException.class, () -> filmController.updateFilm(film));
@@ -61,7 +61,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void shouldValidateUserUpdate(){
+    public void shouldValidateUserUpdate() {
         user.setId(1);
 
         final UpdateException exception = assertThrows(UpdateException.class, () -> userController.updateUser(user));
