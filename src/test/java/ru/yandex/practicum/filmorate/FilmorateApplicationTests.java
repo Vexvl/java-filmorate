@@ -57,7 +57,7 @@ class FilmorateApplicationTests {
 
         final UpdateException exception = assertThrows(UpdateException.class, () -> filmController.updateFilm(film));
 
-        assertEquals("Такого фильма нет", exception.getMessage());
+        assertEquals("Фильма с id " + film.getId() + " нет", exception.getMessage());
     }
 
     @Test
@@ -66,7 +66,7 @@ class FilmorateApplicationTests {
 
         final UpdateException exception = assertThrows(UpdateException.class, () -> userController.updateUser(user));
 
-        assertEquals("Такого пользователя нет", exception.getMessage());
+        assertEquals("Пользователя с id " + user.getId() + " нет", exception.getMessage());
     }
 
 }
