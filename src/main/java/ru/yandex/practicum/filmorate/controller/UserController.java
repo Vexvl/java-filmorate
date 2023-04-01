@@ -16,27 +16,9 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
 
-    private final Map<Integer, User> userMap = new HashMap<>();
+    private final Map<Long, User> userMap = new HashMap<>();
 
-    private int id = 1;
-
-    private void addUserToList(User user) {
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-        }
-        user.setId(id);
-        userMap.put(user.getId(), user);
-        log.info("Пользователь успешно создан");
-        id++;
-    }
-
-    private User updateUserList(User user) {
-        if (userMap.containsKey(user.getId())) {
-            userMap.put(user.getId(), user);
-            log.info("Пользователь успешно обновлён");
-            return user;
-        } else throw new UpdateException("Такого пользователя нет");
-    }
+    private long id = 1;
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
@@ -53,5 +35,25 @@ public class UserController {
     @GetMapping
     public List<User> getUsers() {
         return new ArrayList<User>(userMap.values());
+    }
+
+    private void addUserToList(User user) {
+        if (user.getName() == null) {
+            user.setName(user.getLogin());
+        }
+        user.setId(id);
+        userMap.put(user.getId(), user);
+        log.info("Пользователь с id " + user.getId() + "успешно добавлен");
+        id++;
+    }
+
+    private User updateUserList(User user) {
+        if (userMap.containsKey(user.getId())) {
+            userMap.put(user.getId(), user);
+            log.info("Пользователь с id " + user.getId() + "успешно обновлён");
+            return user;
+        } else {
+            throw new UpdateException("Пользователя с id " + user.getId() + " нет");
+        }
     }
 }
