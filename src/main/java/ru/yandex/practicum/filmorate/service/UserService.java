@@ -15,7 +15,7 @@ import java.util.Set;
 @Service
 public class UserService {
 
-    private UserStorage userStorage;
+    private final UserStorage userStorage;
     private User user;
     private User user2;
 
@@ -45,20 +45,20 @@ public class UserService {
     public List<User> getFriends(long userId) {
         user = userStorage.getUser(userId);
         List<User> friends = new ArrayList<>();
-        for (Long id : user.getFriends()){
+        for (Long id : user.getFriends()) {
             friends.add(userStorage.getUser(id));
         }
         return friends;
     }
 
-    public List<User> getCommonFriends(long userId, long friendId){
+    public List<User> getCommonFriends(long userId, long friendId) {
         user = userStorage.getUser(userId);
         user2 = userStorage.getUser(friendId);
         Set<Long> userFriendSet = new HashSet<>(user.getFriends());
         Set<Long> user2FriendSet = new HashSet<>(user2.getFriends());
         userFriendSet.retainAll(user2FriendSet);
         List<User> commonFriends = new ArrayList<>();
-        for (Long id : userFriendSet){
+        for (Long id : userFriendSet) {
             commonFriends.add(userStorage.getUser(id));
         }
         return commonFriends;

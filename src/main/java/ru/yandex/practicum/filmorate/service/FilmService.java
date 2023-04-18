@@ -32,7 +32,7 @@ public class FilmService {
     }
 
     public void deleteLike(long filmId, long userId) {
-        if (!userStorage.getUsers().contains(userStorage.getUser(userId))){
+        if (!userStorage.getUsers().contains(userStorage.getUser(userId))) {
             throw new ExistingException("Такого пользователя нет");
         }
         film = filmStorage.getFilm(filmId);
