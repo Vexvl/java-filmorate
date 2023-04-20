@@ -5,13 +5,18 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
-import ru.yandex.practicum.filmorate.exceptions.ServerException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 
 import java.util.Map;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
+
+    @ExceptionHandler(Throwable.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleThrowable(Throwable t) {
+        return Map.of("error", "Возникло непредвиденное исключение", "errorMessage", "Ошибка на сервере");
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -25,9 +30,4 @@ public class ExceptionsHandler {
         return Map.of("error", "Искомый объект не найден", "errorMessage", e.getMessage());
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> serverException(ServerException e) {
-        return Map.of("error", "Возникло исключение", "errorMessage", e.getMessage());
-    }
 }

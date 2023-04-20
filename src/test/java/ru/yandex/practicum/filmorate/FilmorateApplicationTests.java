@@ -35,8 +35,7 @@ class FilmorateApplicationTests {
 
     @BeforeEach
     public void beforeEach() {
-        InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
-        userController = new UserController(inMemoryUserStorage, userService);
+        userController = new UserController(userService);
 
         film = new Film();
         user = new User();
