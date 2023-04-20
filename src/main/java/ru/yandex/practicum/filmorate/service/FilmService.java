@@ -26,7 +26,7 @@ public class FilmService {
         this.userStorage = userStorage;
     }
 
-    public Film createFilm(Film film) throws ServerException {
+    public Film createFilm(Film film) {
         return filmStorage.create(film);
     }
 
