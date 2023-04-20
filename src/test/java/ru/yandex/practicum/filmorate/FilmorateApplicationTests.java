@@ -5,10 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exceptions.UpdateException;
+import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 
@@ -23,11 +27,14 @@ class FilmorateApplicationTests {
     private Film film;
     private UserController userController;
     private User user;
+    private FilmStorage filmStorage;
+    private UserStorage userStorage;
+    private FilmService filmService;
+    private UserService userService;
 
     @BeforeEach
     public void beforeEach() {
-        filmController = new FilmController();
-        userController = new UserController();
+        userController = new UserController(userService);
 
         film = new Film();
         user = new User();
@@ -55,7 +62,7 @@ class FilmorateApplicationTests {
     public void shouldTValidateFilmUpdate() {
         film.setId(1);
 
-        final UpdateException exception = assertThrows(UpdateException.class, () -> filmController.updateFilm(film));
+        final ExistingException exception = assertThrows(ExistingException.class, () -> filmController.updateFilm(film));
 
         assertEquals("Фильма с id " + film.getId() + " нет", exception.getMessage());
     }
@@ -64,7 +71,7 @@ class FilmorateApplicationTests {
     public void shouldValidateUserUpdate() {
         user.setId(1);
 
-        final UpdateException exception = assertThrows(UpdateException.class, () -> userController.updateUser(user));
+        final ExistingException exception = assertThrows(ExistingException.class, () -> userController.updateUser(user));
 
         assertEquals("Пользователя с id " + user.getId() + " нет", exception.getMessage());
     }
