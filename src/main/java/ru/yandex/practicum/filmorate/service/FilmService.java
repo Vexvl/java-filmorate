@@ -62,9 +62,9 @@ public class FilmService {
     }
 
     public List<Film> showTopFilms(int count) {
-        Comparator<Film> film_comparator = Comparator.comparingInt(film -> film.getLikedUsers().size());
+        Comparator<Film> comparator = Comparator.comparingInt(film -> film.getLikedUsers().size());
         return filmStorage.getFilms().stream()
-                .sorted(film_comparator)
+                .sorted(comparator)
                 .limit(count)
                 .collect(Collectors.toList());
     }
