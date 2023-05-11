@@ -1,12 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
+import ru.yandex.practicum.filmorate.dao.FilmStorageDao;
 
-import ru.yandex.practicum.filmorate.dao.UserStorage;
+import ru.yandex.practicum.filmorate.dao.UserStorageDao;
 
 import java.util.Comparator;
 import java.util.List;
@@ -15,52 +14,52 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
 
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final FilmStorageDao filmStorageDao;
+    private final UserStorageDao userStorageDao;
 
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+    public FilmService(FilmStorageDao filmStorageDao, UserStorageDao userStorageDao) {
+        this.filmStorageDao = filmStorageDao;
+        this.userStorageDao = userStorageDao;
     }
 
     public Film createFilm(Film film) {
-        return filmStorage.create(film);
+        return filmStorageDao.create(film);
     }
 
     public Film update(Film film) {
-        return filmStorage.update(film);
+        return filmStorageDao.update(film);
     }
 
     public Film getFilm(long id) {
-        return filmStorage.getFilm(id);
+        return filmStorageDao.getFilm(id);
     }
 
     public List<Film> getFilms() {
-        return filmStorage.getFilms();
+        return filmStorageDao.getFilms();
     }
 
     public void addLike(long filmId, long userId) {
-        if (filmStorage.getFilm(filmId) == null || userStorage.getUser(userId) == null) {
+        if (filmStorageDao.getFilm(filmId) == null || userStorageDao.getUser(userId) == null) {
             throw new ExistingException("Пользователь или фильм не существует");
         } else {
-            Film film = filmStorage.getFilm(filmId);
+            Film film = filmStorageDao.getFilm(filmId);
             film.getLikedUsers().add(userId);
-            filmStorage.update(film);
+            filmStorageDao.update(film);
         }
     }
 
     public void deleteLike(long filmId, long userId) {
-        if (filmStorage.getFilm(filmId) == null || userStorage.getUser(userId) == null) {
+        if (filmStorageDao.getFilm(filmId) == null || userStorageDao.getUser(userId) == null) {
             throw new ExistingException("Пользователь или фильм не существует");
         }
-        Film film = filmStorage.getFilm(filmId);
+        Film film = filmStorageDao.getFilm(filmId);
         film.getLikedUsers().remove(userId);
-        filmStorage.update(film);
+        filmStorageDao.update(film);
     }
 
     public List<Film> showTopFilms(int count) {
         Comparator<Film> comparator = Comparator.comparingInt(film -> film.getLikedUsers().size());
-        return filmStorage.getFilms().stream()
+        return filmStorageDao.getFilms().stream()
                 .sorted(comparator)
                 .limit(count)
                 .collect(Collectors.toList());

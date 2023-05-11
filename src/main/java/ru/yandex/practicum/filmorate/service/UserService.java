@@ -1,10 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
+import ru.yandex.practicum.filmorate.dao.impl.UserStorageDaoImp;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.dao.UserStorage;
+import ru.yandex.practicum.filmorate.dao.UserStorageDao;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -14,64 +13,64 @@ import java.util.Set;
 
 @Service
 public class UserService {
-    private final UserStorage userStorage;
+    private final UserStorageDao userStorageDao;
 
-    public UserService(UserDbStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserService(UserStorageDaoImp userStorageDao) {
+        this.userStorageDao = userStorageDao;
     }
 
     public User createUser(User user) {
-        return userStorage.create(user);
+        return userStorageDao.create(user);
     }
 
     public User updateUser(User user) {
-        return userStorage.update(user);
+        return userStorageDao.update(user);
     }
 
     public User getUser(long id) {
-        return userStorage.getUser(id);
+        return userStorageDao.getUser(id);
     }
 
     public List<User> getUsers() {
-        return userStorage.getUsers();
+        return userStorageDao.getUsers();
     }
 
     public void addFriend(long userId, long friendId) {
-        User user = userStorage.getUser(userId);
-        User user2 = userStorage.getUser(friendId);
+        User user = userStorageDao.getUser(userId);
+        User user2 = userStorageDao.getUser(friendId);
         user.getFriends().add(friendId);
         user2.getFriends().add(userId);
-        userStorage.update(user);
-        userStorage.update(user2);
+        userStorageDao.update(user);
+        userStorageDao.update(user2);
     }
 
     public void deleteFriend(long userId, long friendId) {
-        User user = userStorage.getUser(userId);
-        User user2 = userStorage.getUser(friendId);
+        User user = userStorageDao.getUser(userId);
+        User user2 = userStorageDao.getUser(friendId);
         user.getFriends().remove(user2.getId());
         user2.getFriends().remove(user.getId());
-        userStorage.update(user);
-        userStorage.update(user2);
+        userStorageDao.update(user);
+        userStorageDao.update(user2);
     }
 
     public List<User> getFriends(long userId) {
-        User user = userStorage.getUser(userId);
+        User user = userStorageDao.getUser(userId);
         List<User> friends = new ArrayList<>();
         for (Long id : user.getFriends()) {
-            friends.add(userStorage.getUser(id));
+            friends.add(userStorageDao.getUser(id));
         }
         return friends;
     }
 
     public List<User> getCommonFriends(long userId, long friendId) {
-        User user = userStorage.getUser(userId);
-        User user2 = userStorage.getUser(friendId);
+        User user = userStorageDao.getUser(userId);
+        User user2 = userStorageDao.getUser(friendId);
         Set<Long> userFriendSet = new HashSet<>(user.getFriends());
         Set<Long> user2FriendSet = new HashSet<>(user2.getFriends());
         userFriendSet.retainAll(user2FriendSet);
         List<User> commonFriends = new ArrayList<>();
         for (Long id : userFriendSet) {
-            commonFriends.add(userStorage.getUser(id));
+            commonFriends.add(userStorageDao.getUser(id));
         }
         return commonFriends;
     }
