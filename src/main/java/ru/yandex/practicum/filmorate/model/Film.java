@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import ru.yandex.practicum.filmorate.service.Genre;
-import ru.yandex.practicum.filmorate.service.MPA_Rating;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
@@ -24,6 +22,6 @@ public class Film {
     @Positive
     private int duration;
     private Set<Long> likedUsers = new HashSet<>();
-    private List<Genre> genres = new ArrayList<>();
-    private MPA_Rating mpaRating;
+    private List<String> genres = new ArrayList<>();
+    private int mpaRating;
 }

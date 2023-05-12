@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmMapper;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -20,7 +21,7 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
 
     @Override
     public Film create(Film film) {
-        jdbcTemplate.update("INSERT INTO FILMS VALUES (?,?,?,?,?,?)", film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpaRating());
+        jdbcTemplate.update("INSERT INTO FILMS (FILM_ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_RATING_ID) VALUES (?,?,?,?,?,?)", film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpaRating());
         return film;
     }
 
@@ -38,11 +39,11 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
 
     @Override
     public Film getFilm(long filmId) {
-        return null;
+        return jdbcTemplate.query("SELECT * FROM FILMS WHERE FILM_ID=?", new Object[]{filmId}, new FilmMapper()).stream().findAny().orElse(null);
     }
 
     @Override
     public List<Film> getFilms() {
-        return null;
+        return jdbcTemplate.query("SELECT * FROM FILMS", new FilmMapper());
     }
 }
