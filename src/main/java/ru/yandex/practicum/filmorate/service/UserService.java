@@ -13,6 +13,8 @@ import java.util.Set;
 
 @Service
 public class UserService {
+
+    private long id = 0;
     private final UserStorageDao userStorageDao;
 
     public UserService(UserStorageDaoImp userStorageDao) {
@@ -20,6 +22,7 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        user.setId(+1);
         return userStorageDao.create(user);
     }
 

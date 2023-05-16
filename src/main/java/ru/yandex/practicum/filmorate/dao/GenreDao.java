@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.dao;
 
+import ru.yandex.practicum.filmorate.model.Genre;
+
 import java.util.List;
 
 public interface GenreDao {
-    String getGenreById(long id);
+    Genre getGenreById(long id);
 
-    List<String> getAllGenres();
+    List<Genre> getAllGenres();
 }

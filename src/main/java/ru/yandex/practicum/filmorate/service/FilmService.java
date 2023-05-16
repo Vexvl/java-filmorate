@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
 
+    private long id = 0;
+
     private final FilmStorageDao filmStorageDao;
     private final UserStorageDao userStorageDao;
 
@@ -23,6 +25,7 @@ public class FilmService {
     }
 
     public Film createFilm(Film film) {
+        film.setId(+1);
         return filmStorageDao.create(film);
     }
 
