@@ -16,25 +16,27 @@ import java.util.List;
 public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.UserStorageDao {
     private final JdbcTemplate jdbcTemplate;
 
+    private long id = 0;
+
     public UserStorageDaoImp(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public User create(User user) {
+        id++;
+        user.setId(id);
         jdbcTemplate.update("INSERT INTO USERS (USER_ID, NAME, EMAIL, LOGIN, BIRTHDAY) VALUES (?,?,?,?,?)", user.getId(), user.getName(), user.getEmail(), user.getLogin(), user.getBirthday());
         return user;
     }
 
     @Override
     public User update(User user) {
-        try {
-            jdbcTemplate.update("UPDATE USERS SET USER_ID=?, NAME=?, EMAIL=?, BIRTHDAY=? WHERE USER_ID=?", user.getId(), user.getName(), user.getEmail(), user.getBirthday(),user.getId());
-            return user;
+        if (getUser(user.getId()) != null) {
+            jdbcTemplate.update("UPDATE USERS SET USER_ID=?, NAME=?, EMAIL=?, LOGIN=? ,BIRTHDAY=? WHERE USER_ID=?", user.getId(), user.getName(), user.getEmail(), user.getLogin(), user.getBirthday(),user.getId());
         }
-        catch (Exception e){
-            throw new ExistingException("Такого user нет");
-        }
+        else throw new ExistingException("Такого film нет");
+        return user;
     }
 
     @Override
@@ -52,5 +54,16 @@ public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.User
     @Override
     public List<User> getUsers() {
         return jdbcTemplate.query("SELECT * FROM USERS", new UserMapper());
+    }
+
+    @Override
+    public void addFriend(long userId, long userId2) {
+        jdbcTemplate.update("INSERT INTO USER_FRIENDS (USER_ID, FRIEND_ID, CONFIRMATION_STATUS) VALUES(?,?,?)",userId, userId2, false);
+    }
+
+    @Override
+    public void deleteFriend(long userId, long userId2) {
+        jdbcTemplate.update("DELETE FROM USER_FRIENDS WHERE USER_ID=? AND FRIEND_ID=?",userId, userId2);
+        jdbcTemplate.update("UPDATE USER_FRIENDS SET CONFIRMATION_STATUS = FALSE WHERE USER_ID = ? AND FRIEND_ID =?", userId, userId2);
     }
 }

@@ -14,4 +14,8 @@ public interface UserStorageDao {
     User getUser(long id);
 
     List<User> getUsers();
+
+    void addFriend(long userId, long userId2);
+
+    void deleteFriend(long userId, long userId2);
 }

@@ -17,30 +17,29 @@ import java.util.List;
 public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.FilmStorageDao {
     private final JdbcTemplate jdbcTemplate;
 
+    private long id = 0;
+
     public FilmStorageDaoImp(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public Film create(Film film) {
+        id++;
+        film.setId(id);
         jdbcTemplate.update("INSERT INTO FILMS (FILM_ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_RATING_ID) VALUES (?,?,?,?,?,?)", film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId());
-        if (film.getGenres() != null){
-            for (Genre genre : film.getGenres()){
-                jdbcTemplate.update("INSERT INTO FILM_GENRE (film_id, genre_id) VALUES (?,?)", film.getId(),genre.getId());
-            }
-        }
         return film;
     }
 
     @Override
     public Film update(Film film) {
-        try {
+        if (getFilm(film.getId()) != null) {
             jdbcTemplate.update("UPDATE FILMS SET FILM_ID=?, NAME=?, DESCRIPTION=?, RELEASE_DATE=?, DURATION=?, MPA_RATING_ID=? WHERE FILM_ID=?", film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId(), film.getId());
-            return film;
-        } catch (Exception e) {
-            throw new ExistingException("Такого film нет");
         }
+        else throw new ExistingException("Такого film нет");
+        return film;
     }
+
     @Override
     public void delete(Film film) {
         jdbcTemplate.update("DELETE FROM FILMS WHERE FILM_ID=?", film.getId());
@@ -56,4 +55,5 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
     public List<Film> getFilms() {
         return jdbcTemplate.query("SELECT * FROM FILMS", new FilmMapper());
     }
+
 }
