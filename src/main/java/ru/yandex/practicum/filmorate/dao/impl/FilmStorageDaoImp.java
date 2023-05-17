@@ -25,7 +25,6 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
     private final GenreDao genreDao;
     private long id = 0;
 
-
     public FilmStorageDaoImp(JdbcTemplate jdbcTemplate, MpaRatingDao mpaRatingDao, UserStorageDao userStorageDao, GenreDao genreDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.mpaRatingDao = mpaRatingDao;
@@ -91,8 +90,7 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
             film.setLikedUsers(likes);
 
             return film;
-        }
-       else throw new ExistingException("Такого фильма нет");
+        } else throw new ExistingException("Такого фильма нет");
     }
 
     @Override
@@ -144,6 +142,7 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
         }
         return genresList;
     }
+
     @Override
     public List<Long> getLikedId(long filmId) {
         List<Long> likes = new ArrayList<>();
