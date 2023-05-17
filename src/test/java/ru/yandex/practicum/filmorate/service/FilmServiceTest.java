@@ -46,7 +46,7 @@ class FilmServiceTest {
     }
 
     @Test
-    void testGetFilm(){
+    void testGetFilm() {
         film = filmService.createFilm(film);
         assertNotNull(filmService.getFilm(film.getId()));
     }
@@ -120,7 +120,7 @@ class FilmServiceTest {
         userService.createUser(test);
         filmService.addLike(film.getId(), test.getId());
         filmService.deleteLike(film.getId(), test.getId());
-        assertEquals(0,film.getLikedUsers().size());
+        assertEquals(0, film.getLikedUsers().size());
     }
 
     @Test
