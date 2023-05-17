@@ -4,11 +4,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmStorageDao;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
