@@ -123,7 +123,6 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
         while (filmsRows.next()) {
             films.add(getFilm(filmsRows.getLong("FILM_ID")));
         }
-        Collections.sort(films, Comparator.comparingLong(Film::getId));
         return films;
     }
 

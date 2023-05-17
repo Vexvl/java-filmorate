@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -41,12 +42,10 @@ public class FilmService {
     }
 
     public List<Film> showTopFilms(int count) {
-        List<Film> allFilms = filmStorageDao.showTopFilms();
-        Comparator<Film> filmComparator = Comparator.comparingLong(film -> filmStorageDao.getLikedId(film.getId()).size());
-        allFilms.sort(filmComparator.reversed());
-        if (count >= allFilms.size()) {
-            return allFilms;
-        }
-        return allFilms.subList(0, count);
+        Comparator<Film> comparator = Comparator.comparingLong(film -> filmStorageDao.getLikedId(film.getId()).size());
+        return filmStorageDao.showTopFilms().stream()
+                .sorted(comparator.reversed())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }
