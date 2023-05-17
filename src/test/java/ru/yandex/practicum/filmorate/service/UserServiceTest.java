@@ -46,10 +46,10 @@ public class UserServiceTest {
     }
 
     @Test
-    void testGetUsers(){
+    void testGetUsers() {
         userService.createUser(user);
         userService.createUser(user2);
-        assertEquals(2,userService.getUsers().size());
+        assertEquals(2, userService.getUsers().size());
     }
 
     @Test
