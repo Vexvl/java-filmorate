@@ -1,15 +1,11 @@
-package ru.yandex.practicum.filmorate.service;
-
-import ru.yandex.practicum.filmorate.model.Film;
+package ru.yandex.practicum.filmorate.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+
 
 public class MpaRatingMapper implements RowMapper<MpaRating> {
     @Override

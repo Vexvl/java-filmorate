@@ -2,15 +2,11 @@ package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.dao.GenreDao;;
-import ru.yandex.practicum.filmorate.exceptions.ExistingException;
+import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.service.FilmMapper;
-import ru.yandex.practicum.filmorate.service.GenreMapper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -26,7 +22,7 @@ public class GenreDaoImp implements GenreDao {
 
     @Override
     public Genre getGenreById(long id) {
-        return jdbcTemplate.query("SELECT * FROM GENRES WHERE ID=?", new Object[]{id}, new GenreMapper()).stream().findAny().orElse(null);
+        return jdbcTemplate.query("SELECT * FROM GENRES WHERE ID=?", new Object[]{id}, new GenreMapper()).stream().findAny().orElseThrow();
     }
 
     @Override

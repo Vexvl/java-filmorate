@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.dao;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserStorageDao {
     User create(User user);
@@ -18,4 +19,6 @@ public interface UserStorageDao {
     void addFriend(long userId, long userId2);
 
     void deleteFriend(long userId, long userId2);
+
+    Set<Long> getFriendsId(long userId);
 }

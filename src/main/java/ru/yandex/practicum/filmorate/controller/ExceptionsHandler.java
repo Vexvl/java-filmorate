@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
@@ -19,9 +20,15 @@ public class ExceptionsHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleNotFound(NoSuchElementException e) {
+        return Map.of("error", "Такого элемента нет", "errorMessage", "Ошибка на сервере");
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> validationException(ValidationException e) {
-        return Map.of("error", "Ошибка валидации ", "errorMessage", e.getMessage());
+        return Map.of("error", "Ошибка валидации", "errorMessage", e.getMessage());
     }
 
     @ExceptionHandler

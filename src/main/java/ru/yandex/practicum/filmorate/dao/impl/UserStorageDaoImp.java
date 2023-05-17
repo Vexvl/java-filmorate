@@ -2,14 +2,14 @@ package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.ExistingException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FilmMapper;
-import ru.yandex.practicum.filmorate.service.MpaRatingMapper;
-import ru.yandex.practicum.filmorate.service.UserMapper;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -24,6 +24,9 @@ public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.User
 
     @Override
     public User create(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         id++;
         user.setId(id);
         jdbcTemplate.update("INSERT INTO USERS (USER_ID, NAME, EMAIL, LOGIN, BIRTHDAY) VALUES (?,?,?,?,?)", user.getId(), user.getName(), user.getEmail(), user.getLogin(), user.getBirthday());
@@ -32,10 +35,8 @@ public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.User
 
     @Override
     public User update(User user) {
-        if (getUser(user.getId()) != null) {
-            jdbcTemplate.update("UPDATE USERS SET USER_ID=?, NAME=?, EMAIL=?, LOGIN=? ,BIRTHDAY=? WHERE USER_ID=?", user.getId(), user.getName(), user.getEmail(), user.getLogin(), user.getBirthday(),user.getId());
-        }
-        else throw new ExistingException("Такого film нет");
+        getUser(user.getId());
+        jdbcTemplate.update("UPDATE USERS SET USER_ID=?, NAME=?, EMAIL=?, LOGIN=? ,BIRTHDAY=? WHERE USER_ID=?", user.getId(), user.getName(), user.getEmail(), user.getLogin(), user.getBirthday(), user.getId());
         return user;
     }
 
@@ -48,7 +49,7 @@ public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.User
 
     @Override
     public User getUser(long id) {
-        return jdbcTemplate.query("SELECT * FROM USERS WHERE USER_ID=?", new Object[]{id}, new UserMapper()).stream().findAny().orElse(null);
+        return jdbcTemplate.query("SELECT * FROM USERS WHERE USER_ID=?", new Object[]{id}, new UserMapper()).stream().findAny().orElseThrow();
     }
 
     @Override
@@ -58,12 +59,35 @@ public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.User
 
     @Override
     public void addFriend(long userId, long userId2) {
-        jdbcTemplate.update("INSERT INTO USER_FRIENDS (USER_ID, FRIEND_ID, CONFIRMATION_STATUS) VALUES(?,?,?)",userId, userId2, false);
+        getUser(userId);
+        getUser(userId2);
+        String sql = "SELECT * FROM USER_FRIENDS WHERE USER_ID = ? AND FRIEND_ID = ?";
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sql, userId, userId2);
+        if (sqlRowSet.next()) {
+            sql = "UPDATE USER_FRIENDS SET CONFIRMATION_STATUS = TRUE WHERE USER_ID = ? AND FRIEND_ID = ?";
+            jdbcTemplate.update(sql, userId, userId2);
+            jdbcTemplate.update(sql, userId2, userId);
+        } else {
+            sql = "INSERT INTO USER_FRIENDS (USER_ID, FRIEND_ID) VALUES (?, ?)";
+            jdbcTemplate.update(sql, userId, userId2);
+        }
     }
 
     @Override
     public void deleteFriend(long userId, long userId2) {
-        jdbcTemplate.update("DELETE FROM USER_FRIENDS WHERE USER_ID=? AND FRIEND_ID=?",userId, userId2);
+        getUser(userId);
+        getUser(userId2);
+        jdbcTemplate.update("DELETE FROM USER_FRIENDS WHERE USER_ID=? AND FRIEND_ID=?", userId, userId2);
         jdbcTemplate.update("UPDATE USER_FRIENDS SET CONFIRMATION_STATUS = FALSE WHERE USER_ID = ? AND FRIEND_ID =?", userId, userId2);
+    }
+
+    @Override
+    public Set<Long> getFriendsId(long userId) {
+        Set<Long> friends = new HashSet<>();
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet("SELECT FRIEND_ID FROM USER_FRIENDS WHERE USER_ID=?", userId);
+        while (sqlRowSet.next()) {
+            friends.add(sqlRowSet.getLong("FRIEND_ID"));
+        }
+        return friends;
     }
 }

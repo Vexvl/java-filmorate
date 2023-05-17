@@ -1,12 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.ExistingException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dao.FilmStorageDao;
+import ru.yandex.practicum.filmorate.model.Film;
 
-import ru.yandex.practicum.filmorate.dao.UserStorageDao;
-
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,11 +14,9 @@ import java.util.stream.Collectors;
 public class FilmService {
 
     private final FilmStorageDao filmStorageDao;
-    private final UserStorageDao userStorageDao;
 
-    public FilmService(FilmStorageDao filmStorageDao, UserStorageDao userStorageDao) {
+    public FilmService(FilmStorageDao filmStorageDao) {
         this.filmStorageDao = filmStorageDao;
-        this.userStorageDao = userStorageDao;
     }
 
     public Film createFilm(Film film) {
@@ -39,29 +36,20 @@ public class FilmService {
     }
 
     public void addLike(long filmId, long userId) {
-        if (filmStorageDao.getFilm(filmId) == null || userStorageDao.getUser(userId) == null) {
-            throw new ExistingException("Пользователь или фильм не существует");
-        } else {
-            Film film = filmStorageDao.getFilm(filmId);
-            film.getLikedUsers().add(userId);
-            filmStorageDao.update(film);
-        }
+        filmStorageDao.addLike(filmId, userId);
     }
 
     public void deleteLike(long filmId, long userId) {
-        if (filmStorageDao.getFilm(filmId) == null || userStorageDao.getUser(userId) == null) {
-            throw new ExistingException("Пользователь или фильм не существует");
-        }
-        Film film = filmStorageDao.getFilm(filmId);
-        film.getLikedUsers().remove(userId);
-        filmStorageDao.update(film);
+        filmStorageDao.deleteLike(filmId, userId);
     }
 
     public List<Film> showTopFilms(int count) {
-        Comparator<Film> comparator = Comparator.comparingInt(film -> film.getLikedUsers().size());
-        return filmStorageDao.getFilms().stream()
-                .sorted(comparator)
-                .limit(count)
-                .collect(Collectors.toList());
+        List<Film> allFilms = filmStorageDao.showTopFilms();
+        Comparator<Film> filmComparator = Comparator.comparingLong(film -> filmStorageDao.getLikedId(film.getId()).size());
+        allFilms.sort(filmComparator.reversed());
+        if (count >= allFilms.size()) {
+            return allFilms;
+        }
+        return allFilms.subList(0, count);
     }
 }
