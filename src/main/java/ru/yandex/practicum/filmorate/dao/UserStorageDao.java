@@ -21,4 +21,7 @@ public interface UserStorageDao {
     void deleteFriend(long userId, long userId2);
 
     Set<Long> getFriendsId(long userId);
+
+    List<User> getUsersByIds(List<Long> userIds);
+
 }

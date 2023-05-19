@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmStorageDao;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -9,13 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class FilmService {
 
     private final FilmStorageDao filmStorageDao;
-
-    public FilmService(FilmStorageDao filmStorageDao) {
-        this.filmStorageDao = filmStorageDao;
-    }
 
     public Film createFilm(Film film) {
         return filmStorageDao.create(film);

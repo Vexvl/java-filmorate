@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.UserStorageDao;
-import ru.yandex.practicum.filmorate.dao.impl.UserStorageDaoImp;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.ArrayList;
@@ -12,13 +12,10 @@ import java.util.Set;
 
 
 @Service
+@AllArgsConstructor
 public class UserService {
 
     private final UserStorageDao userStorageDao;
-
-    public UserService(UserStorageDaoImp userStorageDao) {
-        this.userStorageDao = userStorageDao;
-    }
 
     public User createUser(User user) {
         return userStorageDao.create(user);

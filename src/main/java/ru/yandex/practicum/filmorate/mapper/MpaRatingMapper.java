@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 
 public class MpaRatingMapper implements RowMapper<MpaRating> {
+
     @Override
     public MpaRating mapRow(ResultSet resultSet, int i) throws SQLException {
 

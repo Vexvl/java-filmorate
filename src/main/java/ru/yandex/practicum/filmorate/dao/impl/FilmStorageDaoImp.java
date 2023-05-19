@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -9,22 +11,27 @@ import ru.yandex.practicum.filmorate.dao.MpaRatingDao;
 import ru.yandex.practicum.filmorate.dao.UserStorageDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.FilmStorageDao {
     private final JdbcTemplate jdbcTemplate;
+
     private final MpaRatingDao mpaRatingDao;
     private final UserStorageDao userStorageDao;
     private final GenreDao genreDao;
     private long id = 0;
 
+    @Autowired
     public FilmStorageDaoImp(JdbcTemplate jdbcTemplate, MpaRatingDao mpaRatingDao, UserStorageDao userStorageDao, GenreDao genreDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.mpaRatingDao = mpaRatingDao;
@@ -34,19 +41,21 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
 
     @Override
     public Film create(Film film) {
-        ValidationException.validateReleaseDate(film.getReleaseDate());
+        validateReleaseDate(film.getReleaseDate());
         id++;
         film.setId(id);
         List<Genre> genres = film.getGenres();
-        if (genres != null) {
+        if (genres != null && !genres.isEmpty()) {
+            List<Long> genreIds = new ArrayList<>();
             for (Genre genre : genres) {
-                genreDao.getGenreById(genre.getId());
+                genreIds.add(genre.getId());
             }
         }
         jdbcTemplate.update("INSERT INTO FILMS (FILM_ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_RATING_ID) VALUES (?,?,?,?,?,?)", film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId());
         film.setGenres(updateGenres(genres, film.getId()));
         return film;
     }
+
 
     @Override
     public Film update(Film film) {
@@ -62,23 +71,9 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
     @Override
     public Film getFilm(long filmId) {
         String sqlQuery = "SELECT * FROM FILMS WHERE FILM_ID = ?";
-
         SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, filmId);
 
         if (sqlRowSet.next()) {
-            sqlQuery = "SELECT GENRE_ID FROM FILM_GENRE WHERE FILM_ID = ?";
-            SqlRowSet genreRows = jdbcTemplate.queryForRowSet(sqlQuery, filmId);
-            List<Genre> genres = new ArrayList<>();
-            while (genreRows.next()) {
-                long genreId = genreRows.getLong("GENRE_ID");
-                genres.add(genreDao.getGenreById(genreId));
-            }
-            sqlQuery = "SELECT USER_ID FROM FAVOURITE_FILMS WHERE FILM_ID = ?";
-            SqlRowSet likesRows = jdbcTemplate.queryForRowSet(sqlQuery, filmId);
-            Set<Long> likes = new HashSet<>();
-            while (likesRows.next()) {
-                likes.add(likesRows.getLong("USER_ID"));
-            }
             Film film = new Film();
             film.setId(sqlRowSet.getLong("FILM_ID"));
             film.setName(sqlRowSet.getString("NAME"));
@@ -86,16 +81,55 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
             film.setReleaseDate(sqlRowSet.getDate("RELEASE_DATE").toLocalDate());
             film.setDuration(sqlRowSet.getInt("DURATION"));
             film.setMpa(mpaRatingDao.getMpaRatingById(sqlRowSet.getLong("MPA_RATING_ID")));
+
+            List<Genre> genres = getGenresByFilmId(filmId);
+            Set<Long> likes = new HashSet<>();
+
+            sqlQuery = "SELECT USER_ID FROM FAVOURITE_FILMS WHERE FILM_ID = ?";
+            SqlRowSet likesRows = jdbcTemplate.queryForRowSet(sqlQuery, filmId);
+            while (likesRows.next()) {
+                likes.add(likesRows.getLong("USER_ID"));
+            }
             film.setGenres(genres);
             film.setLikedUsers(likes);
-
             return film;
-        } else throw new ExistingException("Такого фильма нет");
+        } else {
+            throw new ExistingException("Такого фильма нет");
+        }
     }
 
     @Override
     public List<Film> getFilms() {
-        return jdbcTemplate.query("SELECT * FROM FILMS", new FilmMapper(mpaRatingDao, jdbcTemplate, genreDao));
+        String sqlQuery = "SELECT * FROM FILMS";
+        List<Film> films = new ArrayList<>();
+
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sqlQuery);
+        while (filmRows.next()) {
+            Film film = new Film();
+            film.setId(filmRows.getLong("FILM_ID"));
+            film.setName(filmRows.getString("NAME"));
+            film.setDescription(filmRows.getString("DESCRIPTION"));
+            film.setReleaseDate(filmRows.getDate("RELEASE_DATE").toLocalDate());
+            film.setDuration(filmRows.getInt("DURATION"));
+            film.setMpa(mpaRatingDao.getMpaRatingById(filmRows.getLong("MPA_RATING_ID")));
+
+            long filmId = film.getId();
+            List<Genre> genres = getGenresByFilmId(filmId);
+            Set<Long> likes = new HashSet<>();
+
+            String likesQuery = "SELECT USER_ID FROM FAVOURITE_FILMS WHERE FILM_ID = ?";
+            SqlRowSet likesRows = jdbcTemplate.queryForRowSet(likesQuery, filmId);
+            while (likesRows.next()) {
+                likes.add(likesRows.getLong("USER_ID"));
+            }
+
+            film.setGenres(genres);
+            film.setLikedUsers(likes);
+
+            films.add(film);
+        }
+
+        return films;
     }
 
     @Override
@@ -151,4 +185,18 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
         }
         return likes;
     }
+
+    private void validateReleaseDate(LocalDate date) throws ValidationException {
+        LocalDate validationDate = LocalDate.of(1895, 12, 28);
+        if (date.isBefore(validationDate)) {
+            log.warn("Дата релиза раньше дня рождения кино");
+            throw new ValidationException("Дата релиза раньше дня рождения кино");
+        }
+    }
+
+    private List<Genre> getGenresByFilmId(long filmId) {
+        String sqlQuery = "SELECT G.* FROM GENRES G, FILM_GENRE FG WHERE G.ID = FG.GENRE_ID AND FG.FILM_ID = ?";
+        return jdbcTemplate.query(sqlQuery, new Object[]{filmId}, new BeanPropertyRowMapper<>(Genre.class));
+    }
+
 }
