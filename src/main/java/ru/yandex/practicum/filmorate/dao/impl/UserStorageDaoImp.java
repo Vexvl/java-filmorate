@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -85,21 +84,9 @@ public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.User
 
     @Override
     public Set<Long> getFriendsId(long userId) {
-        Set<Long> friends = new HashSet<>();
-        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet("SELECT FRIEND_ID FROM USER_FRIENDS WHERE USER_ID=?", userId);
-        while (sqlRowSet.next()) {
-            friends.add(sqlRowSet.getLong("FRIEND_ID"));
-        }
-        return friends;
+        String sqlQuery = "SELECT FRIEND_ID FROM USER_FRIENDS WHERE USER_ID=?";
+        List<Long> friendIds = jdbcTemplate.queryForList(sqlQuery, Long.class, userId);
+        return new HashSet<>(friendIds);
     }
 
-    @Override
-    public List<User> getUsersByIds(List<Long> userIds) {
-        List<User> users = new ArrayList<>();
-        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet("SELECT USER_ID FROM USERS");
-        while (sqlRowSet.next()) {
-            users.add(getUser(sqlRowSet.getLong("USER_ID")));
-        }
-        return users;
-    }
 }

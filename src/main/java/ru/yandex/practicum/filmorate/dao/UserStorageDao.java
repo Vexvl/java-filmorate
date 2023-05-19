@@ -22,6 +22,4 @@ public interface UserStorageDao {
 
     Set<Long> getFriendsId(long userId);
 
-    List<User> getUsersByIds(List<Long> userIds);
-
 }
