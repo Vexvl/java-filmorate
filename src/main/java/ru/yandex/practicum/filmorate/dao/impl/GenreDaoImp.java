@@ -2,8 +2,10 @@ package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 
@@ -18,7 +20,15 @@ public class GenreDaoImp implements GenreDao {
 
     @Override
     public Genre getGenreById(long id) {
-        return jdbcTemplate.query("SELECT * FROM GENRES WHERE ID=?", new Object[]{id}, new GenreMapper()).stream().findAny().orElseThrow();
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet("SELECT * FROM GENRES WHERE ID = ?", id);
+        if (sqlRowSet.next()) {
+            Genre genre = new Genre();
+            genre.setId(sqlRowSet.getLong("ID"));
+            genre.setName(sqlRowSet.getString("NAME"));
+            return genre;
+        } else {
+            throw new ExistingException("Такого жанра нет");
+        }
     }
 
     @Override
