@@ -6,9 +6,9 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.MpaRatingDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
-import ru.yandex.practicum.filmorate.mapper.MpaRatingMapper;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -34,6 +34,16 @@ public class MpaRatingDaoImp implements MpaRatingDao {
 
     @Override
     public List<MpaRating> getAllRatings() {
-        return jdbcTemplate.query("SELECT * FROM MPA_RATING", new MpaRatingMapper());
+        List<MpaRating> ratings = new ArrayList<>();
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet("SELECT * FROM MPA_RATING");
+        while (rowSet.next()) {
+            MpaRating rating = new MpaRating();
+            rating.setId(rowSet.getLong("ID"));
+            rating.setName(rowSet.getString("NAME"));
+            ratings.add(rating);
+        }
+
+        return ratings;
     }
 }

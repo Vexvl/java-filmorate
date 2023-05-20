@@ -38,7 +38,7 @@ public class GenreDaoImp implements GenreDao {
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet("SELECT * FROM GENRES");
         while (rowSet.next()) {
             Genre genre = new Genre();
-            genre.setId(rowSet.getLong("GENRE_ID"));
+            genre.setId(rowSet.getLong("ID"));
             genre.setName(rowSet.getString("NAME"));
             genres.add(genre);
         }
