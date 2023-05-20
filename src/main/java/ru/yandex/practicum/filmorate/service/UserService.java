@@ -67,16 +67,19 @@ public class UserService {
                 "JOIN USER_FRIENDS UF2 ON USERS.USER_ID = UF2.FRIEND_ID " +
                 "WHERE UF1.USER_ID = ? AND UF2.USER_ID = ?";
 
-        List<User> commonFriends = jdbcTemplate.query(sqlQuery, new Object[]{userId, friendId}, (rs, rowNum) -> {
-            User user = new User();
+        List<User> commonFriends = new ArrayList<>();
 
-            user.setId(rs.getLong("USER_ID"));
-            user.setName(rs.getString("NAME"));
-            user.setEmail(rs.getString("EMAIL"));
-            user.setLogin(rs.getString("LOGIN"));
-            user.setBirthday(rs.getDate("BIRTHDAY").toLocalDate());
-            return user;
-        });
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId, friendId);
+        while (rowSet.next()) {
+            User user = new User();
+            user.setId(rowSet.getLong("USER_ID"));
+            user.setName(rowSet.getString("NAME"));
+            user.setEmail(rowSet.getString("EMAIL"));
+            user.setLogin(rowSet.getString("LOGIN"));
+            user.setBirthday(rowSet.getDate("BIRTHDAY").toLocalDate());
+            commonFriends.add(user);
+        }
+
         return commonFriends;
     }
 }
