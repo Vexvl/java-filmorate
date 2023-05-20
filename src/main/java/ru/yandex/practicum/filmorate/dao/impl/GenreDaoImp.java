@@ -6,9 +6,9 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
-import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -33,6 +33,16 @@ public class GenreDaoImp implements GenreDao {
 
     @Override
     public List<Genre> getAllGenres() {
-        return jdbcTemplate.query("SELECT * FROM GENRES", new GenreMapper());
+        List<Genre> genres = new ArrayList<>();
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet("SELECT * FROM GENRES");
+        while (rowSet.next()) {
+            Genre genre = new Genre();
+            genre.setId(rowSet.getLong("GENRE_ID"));
+            genre.setName(rowSet.getString("NAME"));
+            genres.add(genre);
+        }
+
+        return genres;
     }
 }
