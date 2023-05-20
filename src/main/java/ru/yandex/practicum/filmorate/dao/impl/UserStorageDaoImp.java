@@ -5,9 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
-import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -67,7 +67,20 @@ public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.User
 
     @Override
     public List<User> getUsers() {
-        return jdbcTemplate.query("SELECT * FROM USERS", new UserMapper());
+        List<User> users = new ArrayList<>();
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet("SELECT * FROM USERS");
+        while (rowSet.next()) {
+            User user = new User();
+            user.setId(rowSet.getLong("USER_ID"));
+            user.setName(rowSet.getString("NAME"));
+            user.setEmail(rowSet.getString("EMAIL"));
+            user.setLogin(rowSet.getString("LOGIN"));
+            user.setBirthday(rowSet.getDate("BIRTHDAY").toLocalDate());
+            users.add(user);
+        }
+
+        return users;
     }
 
     @Override
