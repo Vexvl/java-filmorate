@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -44,13 +45,24 @@ public class UserStorageDaoImp implements ru.yandex.practicum.filmorate.dao.User
     @Override
     public User delete(User user) {
         jdbcTemplate.update("DELETE FROM USERS WHERE USER_ID=?", user.getId());
-        log.info("Удален user: {} {}", user.getId(), user.getName());
         return user;
     }
 
     @Override
     public User getUser(long id) {
-        return jdbcTemplate.query("SELECT * FROM USERS WHERE USER_ID=?", new Object[]{id}, new UserMapper()).stream().findAny().orElseThrow();
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet("SELECT * FROM USERS WHERE USER_ID=?", id);
+        if (sqlRowSet.next()) {
+            User user = new User();
+
+            user.setId(sqlRowSet.getLong("USER_ID"));
+            user.setName(sqlRowSet.getString("NAME"));
+            user.setEmail(sqlRowSet.getString("EMAIL"));
+            user.setLogin(sqlRowSet.getString("LOGIN"));
+            user.setBirthday(sqlRowSet.getDate("BIRTHDAY").toLocalDate());
+            return user;
+        } else {
+            throw new ExistingException("Такого жанра нет");
+        }
     }
 
     @Override
