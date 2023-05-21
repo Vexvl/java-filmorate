@@ -102,7 +102,7 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                     film.getLikedUsers().add(userId);
                 }
             }
-            if (film != null){
+            if (film != null) {
                 return film;
             } else {
                 throw new ExistingException("Такого фильма нет");

@@ -3,15 +3,13 @@ package ru.yandex.practicum.filmorate.dao.impl;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.MpaRatingDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
-import java.util.*;
+import java.util.List;
 
 @Component
 @AllArgsConstructor
