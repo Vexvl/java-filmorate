@@ -1,15 +1,17 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.AllArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.MpaRatingDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 @AllArgsConstructor
@@ -17,33 +19,32 @@ public class MpaRatingDaoImp implements MpaRatingDao {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
     @Override
     public MpaRating getMpaRatingById(long id) {
-        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet("SELECT * FROM MPA_RATING WHERE ID = ?", id);
-        if (sqlRowSet.next()) {
-            MpaRating mpaRating = new MpaRating();
-
-            mpaRating.setId(sqlRowSet.getLong("ID"));
-            mpaRating.setName(sqlRowSet.getString("NAME"));
-
-            return mpaRating;
-        } else {
+        String sqlQuery = "SELECT * FROM MPA_RATING WHERE ID = ?";
+        try {
+            return jdbcTemplate.queryForObject(sqlQuery, new Object[]{id}, (rs, rowNum) -> {
+                MpaRating mpaRating = new MpaRating();
+                mpaRating.setId(rs.getLong("ID"));
+                mpaRating.setName(rs.getString("NAME"));
+                return mpaRating;
+            });
+        } catch (EmptyResultDataAccessException e) {
             throw new ExistingException("Такого рейтинга нет");
         }
     }
 
     @Override
     public List<MpaRating> getAllRatings() {
-        List<MpaRating> ratings = new ArrayList<>();
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet("SELECT * FROM MPA_RATING");
-        while (rowSet.next()) {
+        String sqlQuery = "SELECT * FROM MPA_RATING";
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
             MpaRating rating = new MpaRating();
-            rating.setId(rowSet.getLong("ID"));
-            rating.setName(rowSet.getString("NAME"));
-            ratings.add(rating);
-        }
-
-        return ratings;
+            rating.setId(rs.getLong("ID"));
+            rating.setName(rs.getString("NAME"));
+            return rating;
+        });
     }
+
 }

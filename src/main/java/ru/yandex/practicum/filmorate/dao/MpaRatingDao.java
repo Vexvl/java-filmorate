@@ -8,4 +8,5 @@ public interface MpaRatingDao {
     MpaRating getMpaRatingById(long id);
 
     List<MpaRating> getAllRatings();
+
 }

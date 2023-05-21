@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.UserStorageDao;
@@ -16,6 +18,8 @@ import java.util.List;
 public class UserService {
 
     private final UserStorageDao userStorageDao;
+
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private JdbcTemplate jdbcTemplate;
 
@@ -44,42 +48,40 @@ public class UserService {
     }
 
     public List<User> getFriends(long userId) {
-        String sqlQuery = "SELECT USERS.* FROM USERS JOIN USER_FRIENDS ON USERS.USER_ID = USER_FRIENDS.FRIEND_ID WHERE USER_FRIENDS.USER_ID = ?";
-        List<User> friends = new ArrayList<>();
+        String sqlQuery = "SELECT USERS.USER_ID, USERS.NAME, USERS.EMAIL, USERS.LOGIN, USERS.BIRTHDAY " +
+                "FROM USERS " +
+                "JOIN USER_FRIENDS ON USERS.USER_ID = USER_FRIENDS.FRIEND_ID " +
+                "WHERE USER_FRIENDS.USER_ID = ?";
 
-        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId);
-        while (sqlRowSet.next()) {
+        return jdbcTemplate.query(sqlQuery, new Object[]{userId}, (rs, rowNum) -> {
             User user = new User();
-            user.setId(sqlRowSet.getLong("USER_ID"));
-            user.setName(sqlRowSet.getString("NAME"));
-            user.setEmail(sqlRowSet.getString("EMAIL"));
-            user.setLogin(sqlRowSet.getString("LOGIN"));
-            user.setBirthday(sqlRowSet.getDate("BIRTHDAY").toLocalDate());
-            friends.add(user);
-        }
-
-        return friends;
+            user.setId(rs.getLong("USER_ID"));
+            user.setName(rs.getString("NAME"));
+            user.setEmail(rs.getString("EMAIL"));
+            user.setLogin(rs.getString("LOGIN"));
+            user.setBirthday(rs.getDate("BIRTHDAY").toLocalDate());
+            return user;
+        });
     }
 
     public List<User> getCommonFriends(long userId, long friendId) {
         String sqlQuery = "SELECT USERS.* FROM USERS " +
                 "JOIN USER_FRIENDS UF1 ON USERS.USER_ID = UF1.FRIEND_ID " +
                 "JOIN USER_FRIENDS UF2 ON USERS.USER_ID = UF2.FRIEND_ID " +
-                "WHERE UF1.USER_ID = ? AND UF2.USER_ID = ?";
+                "WHERE UF1.USER_ID = :userId AND UF2.USER_ID = :friendId";
 
-        List<User> commonFriends = new ArrayList<>();
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("friendId", friendId);
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId, friendId);
-        while (rowSet.next()) {
+        return namedParameterJdbcTemplate.query(sqlQuery, parameters, (rs, rowNum) -> {
             User user = new User();
-            user.setId(rowSet.getLong("USER_ID"));
-            user.setName(rowSet.getString("NAME"));
-            user.setEmail(rowSet.getString("EMAIL"));
-            user.setLogin(rowSet.getString("LOGIN"));
-            user.setBirthday(rowSet.getDate("BIRTHDAY").toLocalDate());
-            commonFriends.add(user);
-        }
-
-        return commonFriends;
+            user.setId(rs.getLong("USER_ID"));
+            user.setName(rs.getString("NAME"));
+            user.setEmail(rs.getString("EMAIL"));
+            user.setLogin(rs.getString("LOGIN"));
+            user.setBirthday(rs.getDate("BIRTHDAY").toLocalDate());
+            return user;
+        });
     }
 }

@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -33,16 +32,13 @@ public class GenreDaoImp implements GenreDao {
 
     @Override
     public List<Genre> getAllGenres() {
-        List<Genre> genres = new ArrayList<>();
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet("SELECT * FROM GENRES");
-        while (rowSet.next()) {
+        String sqlQuery = "SELECT * FROM GENRES";
+        List<Genre> genres = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
             Genre genre = new Genre();
-            genre.setId(rowSet.getLong("ID"));
-            genre.setName(rowSet.getString("NAME"));
-            genres.add(genre);
-        }
-
+            genre.setId(rs.getLong("ID"));
+            genre.setName(rs.getString("NAME"));
+            return genre;
+        });
         return genres;
     }
 }
