@@ -18,8 +18,6 @@ public class UserService {
 
     private final UserStorageDao userStorageDao;
 
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
     private JdbcTemplate jdbcTemplate;
 
     public User createUser(User user) {
