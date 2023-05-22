@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.dao.GenreDao;
-import ru.yandex.practicum.filmorate.dao.MpaRatingDao;
 import ru.yandex.practicum.filmorate.dao.UserStorageDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
@@ -22,18 +20,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.FilmStorageDao {
     private final JdbcTemplate jdbcTemplate;
-
-    private final MpaRatingDao mpaRatingDao;
     private final UserStorageDao userStorageDao;
-    private final GenreDao genreDao;
     private long id = 0;
 
     @Autowired
-    public FilmStorageDaoImp(JdbcTemplate jdbcTemplate, MpaRatingDao mpaRatingDao, UserStorageDao userStorageDao, GenreDao genreDao) {
+    public FilmStorageDaoImp(JdbcTemplate jdbcTemplate, UserStorageDao userStorageDao) {
         this.jdbcTemplate = jdbcTemplate;
-        this.mpaRatingDao = mpaRatingDao;
         this.userStorageDao = userStorageDao;
-        this.genreDao = genreDao;
     }
 
     @Override
@@ -160,7 +153,6 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                 film.getLikedUsers().add(userId);
             }
         }
-
         return new ArrayList<>(filmMap.values());
     }
 
@@ -238,17 +230,21 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
         if (genres != null && !genres.isEmpty()) {
             genres = genres.stream().distinct().collect(Collectors.toList());
             String insertQuery = "INSERT INTO FILM_GENRE (FILM_ID, GENRE_ID) VALUES (?, ?)";
-            List<Object[]> batchArgs = new ArrayList<>();
 
             for (Genre genre : genres) {
-                batchArgs.add(new Object[]{filmId, genre.getId()});
+                jdbcTemplate.update(insertQuery, filmId, genre.getId());
             }
 
-            jdbcTemplate.batchUpdate(insertQuery, batchArgs);
+            String selectQuery = "SELECT g.ID, g.NAME FROM GENRES g INNER JOIN FILM_GENRE fg ON g.ID = fg.GENRE_ID WHERE fg.FILM_ID = ?";
+            SqlRowSet rowSet = jdbcTemplate.queryForRowSet(selectQuery, filmId);
 
-            genresList = getGenresByFilmId(filmId);
+            while (rowSet.next()) {
+                Genre genre = new Genre();
+                genre.setId(rowSet.getLong("id"));
+                genre.setName(rowSet.getString("name"));
+                genresList.add(genre);
+            }
         }
-
         return genresList;
     }
 
