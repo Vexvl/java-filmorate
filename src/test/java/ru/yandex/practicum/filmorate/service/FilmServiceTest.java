@@ -66,13 +66,13 @@ class FilmServiceTest {
     }
 
     @Test
-    public void testFindUserByNormalId() {
+    public void testFindFilmByNormalId() {
         Film expectedFilm = filmService.createFilm(film);
         assertEquals(expectedFilm.getName(), film.getName());
     }
 
     @Test
-    public void testFindUserByWrongId() {
+    public void testFindFilmByWrongId() {
         final NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> filmService.getFilm(-1));
         assertEquals("No value present", exception.getMessage());
     }

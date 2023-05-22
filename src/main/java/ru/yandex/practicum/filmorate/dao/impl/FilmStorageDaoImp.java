@@ -67,11 +67,12 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
 
     @Override
     public Film getFilm(long filmId) {
-        String sqlQuery = "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_RATING_ID, g.ID, g.NAME AS GENRE_NAME, ff.USER_ID " +
+        String sqlQuery = "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_RATING_ID, mr.NAME AS MPA_RATING_NAME, g.ID, g.NAME AS GENRE_NAME, ff.USER_ID " +
                 "FROM FILMS f " +
                 "LEFT JOIN FILM_GENRE fg ON f.FILM_ID = fg.FILM_ID " +
                 "LEFT JOIN GENRES g ON fg.GENRE_ID = g.ID " +
                 "LEFT JOIN FAVOURITE_FILMS ff ON f.FILM_ID = ff.FILM_ID " +
+                "LEFT JOIN MPA_RATING mr ON f.MPA_RATING_ID = mr.ID " +
                 "WHERE f.FILM_ID = ?";
 
         return jdbcTemplate.query(sqlQuery, new Object[]{filmId}, rs -> {
@@ -84,7 +85,6 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                     film.setDescription(rs.getString("DESCRIPTION"));
                     film.setReleaseDate(rs.getDate("RELEASE_DATE").toLocalDate());
                     film.setDuration(rs.getInt("DURATION"));
-                    film.setMpa(mpaRatingDao.getMpaRatingById(rs.getLong("MPA_RATING_ID")));
                     film.setGenres(new ArrayList<>());
                     film.setLikedUsers(new HashSet<>());
                 }
@@ -101,6 +101,11 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                 if (!rs.wasNull()) {
                     film.getLikedUsers().add(userId);
                 }
+
+                MpaRating mpaRating = new MpaRating();
+                mpaRating.setId(rs.getLong("MPA_RATING_ID"));
+                mpaRating.setName(rs.getString("MPA_RATING_NAME"));
+                film.setMpa(mpaRating);
             }
             if (film != null) {
                 return film;
@@ -112,11 +117,12 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
 
     @Override
     public List<Film> getFilms() {
-        String sqlQuery = "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_RATING_ID, g.ID, g.NAME AS GENRE_NAME, ff.USER_ID " +
+        String sqlQuery = "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_RATING_ID, mr.NAME AS MPA_RATING_NAME, g.ID, g.NAME AS GENRE_NAME, ff.USER_ID " +
                 "FROM FILMS f " +
                 "LEFT JOIN FILM_GENRE fg ON f.FILM_ID = fg.FILM_ID " +
                 "LEFT JOIN GENRES g ON fg.GENRE_ID = g.ID " +
-                "LEFT JOIN FAVOURITE_FILMS ff ON f.FILM_ID = ff.FILM_ID";
+                "LEFT JOIN FAVOURITE_FILMS ff ON f.FILM_ID = ff.FILM_ID " +
+                "LEFT JOIN MPA_RATING mr ON f.MPA_RATING_ID = mr.ID ";
 
         List<Film> films = jdbcTemplate.query(sqlQuery, rs -> {
             Map<Long, Film> filmMap = new HashMap<>();
@@ -131,7 +137,6 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                     film.setDescription(rs.getString("DESCRIPTION"));
                     film.setReleaseDate(rs.getDate("RELEASE_DATE").toLocalDate());
                     film.setDuration(rs.getInt("DURATION"));
-                    film.setMpa(mpaRatingDao.getMpaRatingById(rs.getLong("MPA_RATING_ID")));
                     film.setGenres(new ArrayList<>());
                     film.setLikedUsers(new HashSet<>());
                     filmMap.put(filmId, film);
@@ -149,6 +154,11 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                 if (!rs.wasNull()) {
                     film.getLikedUsers().add(userId);
                 }
+
+                MpaRating mpaRating = new MpaRating();
+                mpaRating.setId(rs.getLong("MPA_RATING_ID"));
+                mpaRating.setName(rs.getString("MPA_RATING_NAME"));
+                film.setMpa(mpaRating);
             }
 
             return new ArrayList<>(filmMap.values());
@@ -177,11 +187,12 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
 
     @Override
     public List<Film> showTopFilms() {
-        String sqlQuery = "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_RATING_ID, g.ID, g.NAME AS GENRE_NAME, ff.USER_ID " +
+        String sqlQuery = "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_RATING_ID, mr.NAME AS MPA_RATING_NAME, mr.ID AS MPA_RATING_ID, g.ID, g.NAME AS GENRE_NAME, ff.USER_ID " +
                 "FROM FILMS f " +
                 "LEFT JOIN FILM_GENRE fg ON f.FILM_ID = fg.FILM_ID " +
                 "LEFT JOIN GENRES g ON fg.GENRE_ID = g.ID " +
-                "LEFT JOIN FAVOURITE_FILMS ff ON f.FILM_ID = ff.FILM_ID";
+                "LEFT JOIN FAVOURITE_FILMS ff ON f.FILM_ID = ff.FILM_ID " +
+                "LEFT JOIN MPA_RATING mr ON f.MPA_RATING_ID = mr.ID";
 
         List<Film> films = jdbcTemplate.query(sqlQuery, rs -> {
             Map<Long, Film> filmMap = new HashMap<>();
@@ -202,12 +213,6 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                     filmMap.put(filmId, film);
                 }
 
-                Long mpaRatingId = rs.getLong("MPA_RATING_ID");
-                if (!rs.wasNull()) {
-                    MpaRating mpaRating = mpaRatingDao.getMpaRatingById(mpaRatingId);
-                    film.setMpa(mpaRating);
-                }
-
                 Long genreId = rs.getLong("ID");
                 if (!rs.wasNull()) {
                     Genre genre = new Genre();
@@ -220,6 +225,11 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                 if (!rs.wasNull()) {
                     film.getLikedUsers().add(userId);
                 }
+
+                MpaRating mpaRating = new MpaRating();
+                mpaRating.setId(rs.getLong("MPA_RATING_ID"));
+                mpaRating.setName(rs.getString("MPA_RATING_NAME"));
+                film.setMpa(mpaRating);
             }
 
             return new ArrayList<>(filmMap.values());

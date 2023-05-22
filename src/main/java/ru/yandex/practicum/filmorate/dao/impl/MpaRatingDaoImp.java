@@ -1,9 +1,8 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.AllArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.MpaRatingDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
@@ -17,19 +16,17 @@ public class MpaRatingDaoImp implements MpaRatingDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
     @Override
     public MpaRating getMpaRatingById(long id) {
         String sqlQuery = "SELECT * FROM MPA_RATING WHERE ID = ?";
-        try {
-            return jdbcTemplate.queryForObject(sqlQuery, new Object[]{id}, (rs, rowNum) -> {
-                MpaRating mpaRating = new MpaRating();
-                mpaRating.setId(rs.getLong("ID"));
-                mpaRating.setName(rs.getString("NAME"));
-                return mpaRating;
-            });
-        } catch (EmptyResultDataAccessException e) {
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
+
+        if (rowSet.next()) {
+            MpaRating mpaRating = new MpaRating();
+            mpaRating.setId(rowSet.getLong("ID"));
+            mpaRating.setName(rowSet.getString("NAME"));
+            return mpaRating;
+        } else {
             throw new ExistingException("Такого рейтинга нет");
         }
     }
