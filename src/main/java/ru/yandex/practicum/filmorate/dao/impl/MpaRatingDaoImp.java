@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dao.MpaRatingDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -34,12 +35,17 @@ public class MpaRatingDaoImp implements MpaRatingDao {
     @Override
     public List<MpaRating> getAllRatings() {
         String sqlQuery = "SELECT * FROM MPA_RATING";
-        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
+        SqlRowSet ratingRows = jdbcTemplate.queryForRowSet(sqlQuery);
+        List<MpaRating> ratings = new ArrayList<>();
+
+        while (ratingRows.next()) {
             MpaRating rating = new MpaRating();
-            rating.setId(rs.getLong("ID"));
-            rating.setName(rs.getString("NAME"));
-            return rating;
-        });
+            rating.setId(ratingRows.getLong("ID"));
+            rating.setName(ratingRows.getString("NAME"));
+            ratings.add(rating);
+        }
+
+        return ratings;
     }
 
 }

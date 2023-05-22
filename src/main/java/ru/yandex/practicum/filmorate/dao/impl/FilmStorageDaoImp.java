@@ -75,44 +75,44 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                 "LEFT JOIN MPA_RATING mr ON f.MPA_RATING_ID = mr.ID " +
                 "WHERE f.FILM_ID = ?";
 
-        return jdbcTemplate.query(sqlQuery, new Object[]{filmId}, rs -> {
-            Film film = null;
-            while (rs.next()) {
-                if (film == null) {
-                    film = new Film();
-                    film.setId(rs.getLong("FILM_ID"));
-                    film.setName(rs.getString("NAME"));
-                    film.setDescription(rs.getString("DESCRIPTION"));
-                    film.setReleaseDate(rs.getDate("RELEASE_DATE").toLocalDate());
-                    film.setDuration(rs.getInt("DURATION"));
-                    film.setGenres(new ArrayList<>());
-                    film.setLikedUsers(new HashSet<>());
-                }
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, filmId);
+        Film film = null;
 
-                Long genreId = rs.getLong("ID");
-                if (!rs.wasNull()) {
-                    Genre genre = new Genre();
-                    genre.setId(genreId);
-                    genre.setName(rs.getString("GENRE_NAME"));
-                    film.getGenres().add(genre);
-                }
-
-                Long userId = rs.getLong("USER_ID");
-                if (!rs.wasNull()) {
-                    film.getLikedUsers().add(userId);
-                }
-
+        while (rowSet.next()) {
+            if (film == null) {
+                film = new Film();
+                film.setId(rowSet.getLong("FILM_ID"));
+                film.setName(rowSet.getString("NAME"));
+                film.setDescription(rowSet.getString("DESCRIPTION"));
+                film.setReleaseDate(rowSet.getDate("RELEASE_DATE").toLocalDate());
+                film.setDuration(rowSet.getInt("DURATION"));
+                film.setGenres(new ArrayList<>());
+                film.setLikedUsers(new HashSet<>());
                 MpaRating mpaRating = new MpaRating();
-                mpaRating.setId(rs.getLong("MPA_RATING_ID"));
-                mpaRating.setName(rs.getString("MPA_RATING_NAME"));
+                mpaRating.setId(rowSet.getLong("MPA_RATING_ID"));
+                mpaRating.setName(rowSet.getString("MPA_RATING_NAME"));
                 film.setMpa(mpaRating);
             }
-            if (film != null) {
-                return film;
-            } else {
-                throw new ExistingException("Такого фильма нет");
+
+            Long genreId = rowSet.getLong("ID");
+            if (!rowSet.wasNull()) {
+                Genre genre = new Genre();
+                genre.setId(genreId);
+                genre.setName(rowSet.getString("GENRE_NAME"));
+                film.getGenres().add(genre);
             }
-        });
+
+            Long userId = rowSet.getLong("USER_ID");
+            if (!rowSet.wasNull()) {
+                film.getLikedUsers().add(userId);
+            }
+        }
+
+        if (film != null) {
+            return film;
+        } else {
+            throw new ExistingException("Такого фильма нет");
+        }
     }
 
     @Override
@@ -124,47 +124,44 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                 "LEFT JOIN FAVOURITE_FILMS ff ON f.FILM_ID = ff.FILM_ID " +
                 "LEFT JOIN MPA_RATING mr ON f.MPA_RATING_ID = mr.ID ";
 
-        List<Film> films = jdbcTemplate.query(sqlQuery, rs -> {
-            Map<Long, Film> filmMap = new HashMap<>();
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sqlQuery);
 
-            while (rs.next()) {
-                long filmId = rs.getLong("FILM_ID");
-                Film film = filmMap.get(filmId);
-                if (film == null) {
-                    film = new Film();
-                    film.setId(filmId);
-                    film.setName(rs.getString("NAME"));
-                    film.setDescription(rs.getString("DESCRIPTION"));
-                    film.setReleaseDate(rs.getDate("RELEASE_DATE").toLocalDate());
-                    film.setDuration(rs.getInt("DURATION"));
-                    film.setGenres(new ArrayList<>());
-                    film.setLikedUsers(new HashSet<>());
-                    filmMap.put(filmId, film);
-                }
+        Map<Long, Film> filmMap = new HashMap<>();
 
-                Long genreId = rs.getLong("ID");
-                if (!rs.wasNull()) {
-                    Genre genre = new Genre();
-                    genre.setId(genreId);
-                    genre.setName(rs.getString("GENRE_NAME"));
-                    film.getGenres().add(genre);
-                }
-
-                Long userId = rs.getLong("USER_ID");
-                if (!rs.wasNull()) {
-                    film.getLikedUsers().add(userId);
-                }
-
+        while (filmRows.next()) {
+            long filmId = filmRows.getLong("FILM_ID");
+            Film film = filmMap.get(filmId);
+            if (film == null) {
+                film = new Film();
+                film.setId(filmRows.getLong("FILM_ID"));
+                film.setName(filmRows.getString("NAME"));
+                film.setDescription(filmRows.getString("DESCRIPTION"));
+                film.setReleaseDate(filmRows.getDate("RELEASE_DATE").toLocalDate());
+                film.setDuration(filmRows.getInt("DURATION"));
+                film.setGenres(new ArrayList<>());
+                film.setLikedUsers(new HashSet<>());
                 MpaRating mpaRating = new MpaRating();
-                mpaRating.setId(rs.getLong("MPA_RATING_ID"));
-                mpaRating.setName(rs.getString("MPA_RATING_NAME"));
+                mpaRating.setId(filmRows.getLong("MPA_RATING_ID"));
+                mpaRating.setName(filmRows.getString("MPA_RATING_NAME"));
                 film.setMpa(mpaRating);
+                filmMap.put(filmId, film);
             }
 
-            return new ArrayList<>(filmMap.values());
-        });
+            Long genreId = filmRows.getLong("ID");
+            if (!filmRows.wasNull()) {
+                Genre genre = new Genre();
+                genre.setId(genreId);
+                genre.setName(filmRows.getString("GENRE_NAME"));
+                film.getGenres().add(genre);
+            }
 
-        return films;
+            Long userId = filmRows.getLong("USER_ID");
+            if (!filmRows.wasNull()) {
+                film.getLikedUsers().add(userId);
+            }
+        }
+
+        return new ArrayList<>(filmMap.values());
     }
 
     @Override
@@ -194,48 +191,43 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                 "LEFT JOIN FAVOURITE_FILMS ff ON f.FILM_ID = ff.FILM_ID " +
                 "LEFT JOIN MPA_RATING mr ON f.MPA_RATING_ID = mr.ID";
 
-        List<Film> films = jdbcTemplate.query(sqlQuery, rs -> {
-            Map<Long, Film> filmMap = new HashMap<>();
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sqlQuery);
+        Map<Long, Film> filmMap = new HashMap<>();
 
-            while (rs.next()) {
-                long filmId = rs.getLong("FILM_ID");
-                Film film = filmMap.get(filmId);
+        while (filmRows.next()) {
+            long filmId = filmRows.getLong("FILM_ID");
+            Film film = filmMap.get(filmId);
 
-                if (film == null) {
-                    film = new Film();
-                    film.setId(filmId);
-                    film.setName(rs.getString("NAME"));
-                    film.setDescription(rs.getString("DESCRIPTION"));
-                    film.setReleaseDate(rs.getDate("RELEASE_DATE").toLocalDate());
-                    film.setDuration(rs.getInt("DURATION"));
-                    film.setGenres(new ArrayList<>());
-                    film.setLikedUsers(new HashSet<>());
-                    filmMap.put(filmId, film);
-                }
-
-                Long genreId = rs.getLong("ID");
-                if (!rs.wasNull()) {
-                    Genre genre = new Genre();
-                    genre.setId(genreId);
-                    genre.setName(rs.getString("GENRE_NAME"));
-                    film.getGenres().add(genre);
-                }
-
-                Long userId = rs.getLong("USER_ID");
-                if (!rs.wasNull()) {
-                    film.getLikedUsers().add(userId);
-                }
-
+            if (film == null) {
+                film = new Film();
+                film.setId(filmRows.getLong("FILM_ID"));
+                film.setName(filmRows.getString("NAME"));
+                film.setDescription(filmRows.getString("DESCRIPTION"));
+                film.setReleaseDate(filmRows.getDate("RELEASE_DATE").toLocalDate());
+                film.setDuration(filmRows.getInt("DURATION"));
+                film.setGenres(new ArrayList<>());
+                film.setLikedUsers(new HashSet<>());
                 MpaRating mpaRating = new MpaRating();
-                mpaRating.setId(rs.getLong("MPA_RATING_ID"));
-                mpaRating.setName(rs.getString("MPA_RATING_NAME"));
+                mpaRating.setId(filmRows.getLong("MPA_RATING_ID"));
+                mpaRating.setName(filmRows.getString("MPA_RATING_NAME"));
                 film.setMpa(mpaRating);
+                filmMap.put(filmId, film);
             }
 
-            return new ArrayList<>(filmMap.values());
-        });
+            Long genreId = filmRows.getLong("ID");
+            if (!filmRows.wasNull()) {
+                Genre genre = new Genre();
+                genre.setId(genreId);
+                genre.setName(filmRows.getString("GENRE_NAME"));
+                film.getGenres().add(genre);
+            }
 
-        return films;
+            Long userId = filmRows.getLong("USER_ID");
+            if (!filmRows.wasNull()) {
+                film.getLikedUsers().add(userId);
+            }
+        }
+        return new ArrayList<>(filmMap.values());
     }
 
     private List<Genre> updateGenres(List<Genre> genres, Long filmId) {
