@@ -224,16 +224,21 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
 
     private List<Genre> updateGenres(List<Genre> genres, Long filmId) {
         List<Genre> genresList = new ArrayList<>();
+
         String deleteQuery = "DELETE FROM FILM_GENRE WHERE FILM_ID = ?";
         jdbcTemplate.update(deleteQuery, filmId);
 
         if (genres != null && !genres.isEmpty()) {
             genres = genres.stream().distinct().collect(Collectors.toList());
+
             String insertQuery = "INSERT INTO FILM_GENRE (FILM_ID, GENRE_ID) VALUES (?, ?)";
 
+            List<Object[]> batchArgs = new ArrayList<>();
             for (Genre genre : genres) {
-                jdbcTemplate.update(insertQuery, filmId, genre.getId());
+                batchArgs.add(new Object[]{filmId, genre.getId()});
             }
+
+            jdbcTemplate.batchUpdate(insertQuery, batchArgs);
 
             String selectQuery = "SELECT g.ID, g.NAME FROM GENRES g INNER JOIN FILM_GENRE fg ON g.ID = fg.GENRE_ID WHERE fg.FILM_ID = ?";
             SqlRowSet rowSet = jdbcTemplate.queryForRowSet(selectQuery, filmId);
@@ -245,6 +250,7 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
                 genresList.add(genre);
             }
         }
+
         return genresList;
     }
 
@@ -264,22 +270,5 @@ public class FilmStorageDaoImp implements ru.yandex.practicum.filmorate.dao.Film
             log.warn("Дата релиза раньше дня рождения кино");
             throw new ValidationException("Дата релиза раньше дня рождения кино");
         }
-    }
-
-    private List<Genre> getGenresByFilmId(Long filmId) {
-        String sqlQuery = "SELECT g.ID, g.NAME FROM GENRES g " +
-                "JOIN FILM_GENRE fg ON g.ID = fg.GENRE_ID " +
-                "WHERE fg.FILM_ID = ?";
-
-        List<Genre> genres = new ArrayList<>();
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, filmId);
-        while (rowSet.next()) {
-            Genre genre = new Genre();
-            genre.setId(rowSet.getLong("ID"));
-            genre.setName(rowSet.getString("NAME"));
-            genres.add(genre);
-        }
-        return genres;
     }
 }
