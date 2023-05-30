@@ -1,80 +1,91 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.UserStorageDao;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 @Service
+@AllArgsConstructor
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserStorageDao userStorageDao;
 
-    @Autowired
-    public UserService(InMemoryUserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
+    private JdbcTemplate jdbcTemplate;
 
     public User createUser(User user) {
-        return userStorage.create(user);
+        return userStorageDao.create(user);
     }
 
     public User updateUser(User user) {
-        return userStorage.update(user);
+        return userStorageDao.update(user);
     }
 
     public User getUser(long id) {
-        return userStorage.getUser(id);
+        return userStorageDao.getUser(id);
     }
 
     public List<User> getUsers() {
-        return userStorage.getUsers();
+        return userStorageDao.getUsers();
     }
 
     public void addFriend(long userId, long friendId) {
-        User user = userStorage.getUser(userId);
-        User user2 = userStorage.getUser(friendId);
-        user.getFriends().add(friendId);
-        user2.getFriends().add(userId);
-        userStorage.update(user);
-        userStorage.update(user2);
+        userStorageDao.addFriend(userId, friendId);
     }
 
     public void deleteFriend(long userId, long friendId) {
-        User user = userStorage.getUser(userId);
-        User user2 = userStorage.getUser(friendId);
-        user.getFriends().remove(user2.getId());
-        user2.getFriends().remove(user.getId());
-        userStorage.update(user);
-        userStorage.update(user2);
+        userStorageDao.deleteFriend(userId, friendId);
     }
 
     public List<User> getFriends(long userId) {
-        User user = userStorage.getUser(userId);
+        String sqlQuery = "SELECT USERS.USER_ID, USERS.NAME, USERS.EMAIL, USERS.LOGIN, USERS.BIRTHDAY " +
+                "FROM USERS " +
+                "JOIN USER_FRIENDS ON USERS.USER_ID = USER_FRIENDS.FRIEND_ID " +
+                "WHERE USER_FRIENDS.USER_ID = ?";
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId);
         List<User> friends = new ArrayList<>();
-        for (Long id : user.getFriends()) {
-            friends.add(userStorage.getUser(id));
+
+        while (rowSet.next()) {
+            User user = new User();
+            user.setId(rowSet.getLong("USER_ID"));
+            user.setName(rowSet.getString("NAME"));
+            user.setEmail(rowSet.getString("EMAIL"));
+            user.setLogin(rowSet.getString("LOGIN"));
+            user.setBirthday(rowSet.getDate("BIRTHDAY").toLocalDate());
+            friends.add(user);
         }
+
         return friends;
     }
 
+
     public List<User> getCommonFriends(long userId, long friendId) {
-        User user = userStorage.getUser(userId);
-        User user2 = userStorage.getUser(friendId);
-        Set<Long> userFriendSet = new HashSet<>(user.getFriends());
-        Set<Long> user2FriendSet = new HashSet<>(user2.getFriends());
-        userFriendSet.retainAll(user2FriendSet);
+        String sqlQuery = "SELECT USERS.* FROM USERS " +
+                "JOIN USER_FRIENDS UF1 ON USERS.USER_ID = UF1.FRIEND_ID " +
+                "JOIN USER_FRIENDS UF2 ON USERS.USER_ID = UF2.FRIEND_ID " +
+                "WHERE UF1.USER_ID = ? AND UF2.USER_ID = ?";
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId, friendId);
         List<User> commonFriends = new ArrayList<>();
-        for (Long id : userFriendSet) {
-            commonFriends.add(userStorage.getUser(id));
+
+        while (rowSet.next()) {
+            User user = new User();
+            user.setId(rowSet.getLong("USER_ID"));
+            user.setName(rowSet.getString("NAME"));
+            user.setEmail(rowSet.getString("EMAIL"));
+            user.setLogin(rowSet.getString("LOGIN"));
+            user.setBirthday(rowSet.getDate("BIRTHDAY").toLocalDate());
+            commonFriends.add(user);
         }
+
         return commonFriends;
     }
+
 }

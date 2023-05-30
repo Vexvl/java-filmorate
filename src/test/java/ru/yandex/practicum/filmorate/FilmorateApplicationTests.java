@@ -1,18 +1,17 @@
 package ru.yandex.practicum.filmorate;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.dao.FilmStorageDao;
+import ru.yandex.practicum.filmorate.dao.UserStorageDao;
 import ru.yandex.practicum.filmorate.exceptions.ExistingException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 
@@ -27,8 +26,8 @@ class FilmorateApplicationTests {
     private Film film;
     private UserController userController;
     private User user;
-    private FilmStorage filmStorage;
-    private UserStorage userStorage;
+    private FilmStorageDao filmStorageDao;
+    private UserStorageDao userStorageDao;
     private FilmService filmService;
     private UserService userService;
 
